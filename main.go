@@ -14,6 +14,7 @@ import (
 	"crypto/md5"
 	"io"
 	"encoding/hex"
+	"time"
 )
 
 var filesPath = "./folder"
@@ -22,6 +23,7 @@ type Document struct {
 	Id   string
 	Name string
 	Size int64
+	Modified time.Time
 }
 
 func getFiles(dir string) []os.FileInfo {
@@ -43,7 +45,7 @@ func addmd5(filesInfo []os.FileInfo) []Document {
 		if err != nil {
 			log.Fatal(err)
 		}
-		files = append(files, Document{Id: MD5, Name: f.Name(), Size: f.Size()})
+		files = append(files, Document{Id: MD5, Name: f.Name(), Size: f.Size(), Modified: f.ModTime()})
 	}
 	return files
 }
