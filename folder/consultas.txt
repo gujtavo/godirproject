@@ -1,0 +1,10 @@
+SELECT * 
+FROM wp_posts 
+WHERE wp_posts.post_status = 'publish' and post_type = 'post' order by id
+
+
+SELECT * FROM `wp_posts` where id in (406,408,410,710,750)
+
+'open'
+
+Exxis20017@
