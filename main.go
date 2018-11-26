@@ -21,7 +21,7 @@ var filesPath = "./folder"
 type Document struct {
 	Id   string
 	Name string
-	Size int
+	Size int64
 }
 
 func getFiles(dir string) []os.FileInfo {
@@ -37,12 +37,13 @@ func getFiles(dir string) []os.FileInfo {
 
 func addmd5(filesInfo []os.FileInfo) []Document {
 	var files []Document
+	
 	for _, f := range filesInfo {
 		MD5, err := hashFileMD5(filesPath + "/" + f.Name())
 		if err != nil {
 			log.Fatal(err)
 		}
-		files = append(files, Document{Id: MD5, Name: f.Name()})
+		files = append(files, Document{Id: MD5, Name: f.Name(), Size: f.Size()})
 	}
 	return files
 }
