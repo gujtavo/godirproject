@@ -5,9 +5,14 @@ import (
 	"net/http"
 
 	"encoding/json"
+	
+	"io/ioutil"
+	"os"
 
 	"github.com/gorilla/mux"
 )
+
+var filesPath = "./folder"
 
 type Document struct {
 	Id   string
@@ -15,16 +20,17 @@ type Document struct {
 	Size int
 }
 
+func getFiles(dir string) []os.FileInfo {
+	files, err := ioutil.ReadDir(dir)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return files
+}
+
 func getDocuments(w http.ResponseWriter, r *http.Request) {
-	var docs []Document
-	docs = append(docs,
-		Document{Id: "doc-1", Name: "Report.docx", Size: 1500})
-	docs = append(docs,
-		Document{Id: "doc-2", Name: "Sheet.xlsx", Size: 5000})
-	docs = append(docs,
-		Document{Id: "doc-3", Name: "Container.tar", Size: 50000})
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(docs)
+	info := getFiles(filesPath)
+	json.NewEncoder(w).Encode(info)
 }
 
 func main() {
