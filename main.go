@@ -144,12 +144,19 @@ func deleteDocumentById(w http.ResponseWriter, r *http.Request) {
 
 }
 
+	
+func check(e error) {
+    if e != nil {
+        panic(e)
+    }
+}
+
 func createDocument(w http.ResponseWriter, r *http.Request) {
-	fileType := r.PostFormValue("type")	
-	file, _, err := r.FormFile("file")
+	fileType := r.PostFormValue("type")	//make sure a text key named "key" is sent
+	file, _, err := r.FormFile("file")  //make sure a file key named "file" must be sent and a file must be attached (it will be the value)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("no file"))
+		w.Write([]byte("no file in form-data"))
 		return
 	}
 
@@ -160,16 +167,28 @@ func createDocument(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	fileName := "fdfdfd3343d"
+	fileName := "fdfdfd3343d" //just a sample name
 	
 	newPath := filepath.Join(filesPath, fileName+"."+fileType)
-	newFile, err := os.Create(newPath)
-	   defer newFile.Close()
-	if _, err := newFile.Write(fileBytes); err != nil {
+	var _, error = os.Stat(newPath)
+
+	if os.IsNotExist(error) { 
+		newFile, err := os.Create(newPath)
+		check(err)
+		if _, err := newFile.Write(fileBytes); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("error when creating the file"))
+			return
+		}
+	  	defer newFile.Close()
+	} else
+	{
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("error when creating the file"))
+		w.Write([]byte("file already exists"))
 		return
 	}
+	
+
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("File created!"))
 }
