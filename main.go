@@ -15,6 +15,7 @@ import (
 	"io"
 	"encoding/hex"
 	"time"
+	"path/filepath"
 	
 )
 
@@ -143,11 +144,41 @@ func deleteDocumentById(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func createDocument(w http.ResponseWriter, r *http.Request) {
+	fileType := r.PostFormValue("type")	
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("no file"))
+		return
+	}
+
+
+	defer file.Close()
+	fileBytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	fileName := "fdfdfd3343d"
+	
+	newPath := filepath.Join(filesPath, fileName+"."+fileType)
+	newFile, err := os.Create(newPath)
+	   defer newFile.Close()
+	if _, err := newFile.Write(fileBytes); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("error when creating the file"))
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("File created!"))
+}
 
 func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/documents", getDocuments).Methods("GET")
 	router.HandleFunc("/documents/{id}", getDocumentsById).Methods("GET")
+	router.HandleFunc("/documents", createDocument).Methods("POST")
 	router.HandleFunc("/documents/{id}", deleteDocumentById).Methods("DELETE")
 	log.Fatal(http.ListenAndServe(":9000", router))
 }
