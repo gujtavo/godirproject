@@ -113,9 +113,41 @@ func getDocumentsById(w http.ResponseWriter, r *http.Request) { //for example ht
 
 }
 
+func deleteDocumentById(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	status := 0
+	info := getFiles(filesPath)
+	var files []Document
+	
+	for _, f := range info {
+		MD5, err := hashFileMD5(filesPath + "/" + f.Name())
+		if err != nil {
+			log.Fatal(err)
+		}
+		files = append(files, Document{Id: MD5, Name: f.Name(), Size: f.Size(), Modified: f.ModTime()})
+		if MD5 == id {
+			os.Remove(filesPath + "/" + f.Name())
+			status = 200
+		}
+	}
+
+	if status != 200 {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("Delete was not succesful"))
+
+	} else {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("deleted!"))
+	}
+
+}
+
+
 func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/documents", getDocuments).Methods("GET")
 	router.HandleFunc("/documents/{id}", getDocumentsById).Methods("GET")
+	router.HandleFunc("/documents/{id}", deleteDocumentById).Methods("DELETE")
 	log.Fatal(http.ListenAndServe(":9000", router))
 }
