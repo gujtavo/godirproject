@@ -15,6 +15,7 @@ import (
 	"io"
 	"encoding/hex"
 	"time"
+	
 )
 
 var filesPath = "./folder"
@@ -84,11 +85,37 @@ func hashFileMD5(filePath string) (string, error) {
 func getDocuments(w http.ResponseWriter, r *http.Request) {
 	info := getFiles(filesPath)
 	md5 := addmd5(info)
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(md5)
+}
+
+func getDocumentsById(w http.ResponseWriter, r *http.Request) { //for example http://localhost:9000/documents/1593371f4e183af281e34375
+	vars := mux.Vars(r)
+	id := vars["id"]	
+	
+	info := getFiles(filesPath)
+	md5 := addmd5(info)
+	Result := Document{}
+	for _, n := range md5 {
+		if id == n.Id {
+			Result = n
+		}
+	}
+
+	if Result.Id != "" {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(Result)
+	} else {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("Not Found!"))
+	}
+
+
 }
 
 func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/documents", getDocuments).Methods("GET")
+	router.HandleFunc("/documents/{id}", getDocumentsById).Methods("GET")
 	log.Fatal(http.ListenAndServe(":9000", router))
 }
